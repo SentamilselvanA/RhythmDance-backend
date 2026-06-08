@@ -5,7 +5,7 @@ const classSchema = new mongoose.Schema({
   description: { type: String, required: true },
   category: {
     type: String,
-    enum: ['Bharatanatyam', 'Classical', 'Western', 'Hip Hop', 'Contemporary', 'Folk', 'Kids', 'Custom'],
+    enum: ['Bharatanatyam', 'Classical', 'Western', 'Hip Hop', 'Contemporary', 'Folk'],
     required: true,
   },
   image: { type: String, default: '' },

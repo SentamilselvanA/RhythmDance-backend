@@ -1,45 +1,16 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const User = require('./models/User');
-const Faculty = require('./models/Faculty');
-const Class = require('./models/Class');
-const FAQ = require('./models/FAQ');
-const Settings = require('./models/Settings');
-const Notification = require('./models/Notification');
+const Faculty = require('../models/Faculty');
+const Class = require('../models/Class');
+const FAQ = require('../models/FAQ');
+const Settings = require('../models/Settings');
+const Notification = require('../models/Notification');
 
 const seed = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
-
-    // Create Admin user
-    const existingAdmin = await User.findOne({ email: 'admin@rhythmdance.com' });
-    if (!existingAdmin) {
-      await User.create({
-        name: 'Admin User',
-        email: 'admin@rhythmdance.com',
-        mobile: '+91 98765 43210',
-        password: 'Admin@123',
-        role: 'admin',
-        isEmailVerified: true,
-      });
-      console.log('✅ Admin created: admin@rhythmdance.com / Admin@123');
-    }
-
-    // Create sample student
-    const existingStudent = await User.findOne({ email: 'student@rhythmdance.com' });
-    if (!existingStudent) {
-      await User.create({
-        name: 'Sample Student',
-        email: 'student@rhythmdance.com',
-        mobile: '+91 98765 43211',
-        password: 'Student@123',
-        role: 'student',
-        isEmailVerified: true,
-      });
-      console.log('✅ Student created: student@rhythmdance.com / Student@123');
-    }
 
     // Seed Faculty
     const facultyCount = await Faculty.countDocuments();
@@ -109,8 +80,6 @@ const seed = async () => {
     }
 
     console.log('\n🎉 Seed completed successfully!\n');
-    console.log('📧 Admin Login: admin@rhythmdance.com / Admin@123');
-    console.log('📧 Student Login: student@rhythmdance.com / Student@123\n');
     process.exit(0);
   } catch (err) {
     console.error('Seed error:', err);
