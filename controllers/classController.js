@@ -1,5 +1,18 @@
 const Class = require('../models/Class');
-const { cloudinary } = require('../config/cloudinary');
+const { cloudinary, isCloudinaryConfigured } = require('../config/cloudinary');
+
+const getFileUrl = async (file) => {
+  if (!file) return null;
+  if (file.path) return { url: file.path, publicId: file.filename };
+  if (isCloudinaryConfigured()) {
+    const result = await cloudinary.uploader.upload(
+      `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+      { folder: 'dance-school', transformation: [{ width: 800, height: 600, crop: 'limit' }] }
+    );
+    return { url: result.secure_url, publicId: result.public_id };
+  }
+  return null;
+};
 
 exports.getAllClasses = async (req, res) => {
   try {
@@ -36,12 +49,9 @@ exports.getClass = async (req, res) => {
 
 exports.createClass = async (req, res) => {
   try {
-    if (req.file) {
-      req.body.image = req.file.path;
-      req.body.imagePublicId = req.file.filename;
-    }
+    const fileData = await getFileUrl(req.file);
+    if (fileData) { req.body.image = fileData.url; req.body.imagePublicId = fileData.publicId; }
     if (typeof req.body.schedule === 'string') req.body.schedule = JSON.parse(req.body.schedule);
-
     const danceClass = await Class.create(req.body);
     res.status(201).json({ success: true, class: danceClass });
   } catch (err) {
@@ -53,17 +63,15 @@ exports.updateClass = async (req, res) => {
   try {
     if (!req.params.id.match(/^[a-f\d]{24}$/i))
       return res.status(400).json({ success: false, message: 'Invalid class ID' });
-
     const existing = await Class.findById(req.params.id);
     if (!existing) return res.status(404).json({ success: false, message: 'Class not found' });
-
-    if (req.file) {
+    const fileData = await getFileUrl(req.file);
+    if (fileData) {
       if (existing.imagePublicId) await cloudinary.uploader.destroy(existing.imagePublicId).catch(console.error);
-      req.body.image = req.file.path;
-      req.body.imagePublicId = req.file.filename;
+      req.body.image = fileData.url;
+      req.body.imagePublicId = fileData.publicId;
     }
     if (typeof req.body.schedule === 'string') req.body.schedule = JSON.parse(req.body.schedule);
-
     const danceClass = await Class.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     res.json({ success: true, class: danceClass });
   } catch (err) {

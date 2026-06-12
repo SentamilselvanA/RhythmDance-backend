@@ -14,7 +14,7 @@ exports.getNotifications = async (req, res) => {
   try {
     let studentCourses = [];
     if (req.user.role === 'student') {
-      const apps = await Application.find({ user: req.user._id, status: 'Approved' }).select('selectedCourse');
+      const apps = await Application.find({ user: req.user._id }).select('selectedCourse');
       studentCourses = apps.map(a => a.selectedCourse);
     }
 
